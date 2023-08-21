@@ -743,8 +743,8 @@ static int y4m_input_open_impl(y4m_input *_y4m,FILE *_fin,int _out_bd){
     return -1;
   }
   _y4m->depth_input=_y4m->depth;
-  _y4m->depth=_out_bd;
-  xstride=_y4m->depth_input>8||_out_bd>8?2:1;
+  _y4m->depth=_out_bd==0?_y4m->depth:_out_bd;
+  xstride=_y4m->depth_input>8||_y4m->depth>8?2:1;
   /*The size of the final frame buffers is always computed from the
      destination chroma decimation type.*/
   _y4m->dst_buf_sz=_y4m->pic_w*_y4m->pic_h
