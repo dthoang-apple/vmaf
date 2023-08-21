@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
         err = raw_input_open(&vid_ref, file_ref,
                              c.width, c.height, c.pix_fmt, c.bitdepth);
     } else {
-        err = video_input_open(&vid_ref, file_ref);
+        err = video_input_open(&vid_ref, file_ref, c.bitdepth);
     }
     if (err) {
         fprintf(stderr, "problem with reference file: %s\n", c.path_ref);
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
         err = raw_input_open(&vid_dist, file_dist,
                              c.width, c.height, c.pix_fmt, c.bitdepth);
     } else {
-        err = video_input_open(&vid_dist, file_dist);
+        err = video_input_open(&vid_dist, file_dist, c.bitdepth);
     }
     if (err) {
         fprintf(stderr, "problem with distorted file: %s\n", c.path_dist);

@@ -351,7 +351,7 @@ void cli_parse(const int argc, char *const *const argv,
             break;
         case 'b':
             settings->bitdepth = parse_bitdepth(optarg, 'b', argv[0]);
-            settings->use_yuv = true;
+            //settings->use_yuv = true;
             break;
         case 'o':
             settings->output_path = optarg;
