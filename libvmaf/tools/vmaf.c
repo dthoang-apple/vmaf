@@ -49,18 +49,25 @@ static int validate_videos(video_input *vid1, video_input *vid2)
         err_cnt++;
     }
 
-    if (info1.depth != info2.depth) {
-        fprintf(stderr, "bitdepths do not match: %d, %d\n",
-                info1.depth, info2.depth);
-        err_cnt++;
-    }
-
     if (info1.depth < 8 || info1.depth > 16) {
         fprintf(stderr, "unsupported bitdepth: %d\n", info1.depth);
         err_cnt++;
     }
 
+    if (info2.depth < 8 || info2.depth > 16) {
+        fprintf(stderr, "unsupported bitdepth: %d\n", info2.depth);
+        err_cnt++;
+    }
+
     //TODO: more validations are possible.
+
+    // must be last validation
+    if (err_cnt == 0 && info1.depth != info2.depth) {
+        fprintf(stderr, "bitdepths do not match: %d, %d\n",
+                info1.depth, info2.depth);
+        // set err_cnt to negative of higher bit depth to signal mismatch
+        err_cnt = - (info1.depth > info2.depth ? info1.depth : info2.depth);
+    }
 
     return err_cnt;
 }
@@ -170,10 +177,55 @@ int main(int argc, char *argv[])
     }
 
     err = validate_videos(&vid_ref, &vid_dist);
-    if (err) {
+    if (err > 0) {
         fprintf(stderr, "videos are incompatible, %d %s.\n",
                 err, err == 1 ? "problem" : "problems");
         return -1;
+    }
+    if (err < 0) {
+        // When bitdepths do not match, use higher bitdepth for metric calculation.
+        // err is negative of higher bitdepth
+        c.bitdepth = -err;
+        printf("setting bitdepth to %d\n", c.bitdepth); 
+
+        // close video input sources
+        video_input_close(&vid_ref);
+        video_input_close(&vid_dist);
+
+        // reopen video input with higher bitdepth
+        file_ref = fopen(c.path_ref, "rb");
+        if (!file_ref) {
+            fprintf(stderr, "could not open file: %s\n", c.path_ref);
+            return -1;
+        }
+
+        file_dist = fopen(c.path_dist, "rb");
+        if (!file_dist) {
+            fprintf(stderr, "could not open file: %s\n", c.path_dist);
+            return -1;
+        }
+
+        if (c.use_yuv) {
+            err = raw_input_open(&vid_ref, file_ref,
+                                 c.width, c.height, c.pix_fmt, c.bitdepth);
+        } else {
+            err = video_input_open(&vid_ref, file_ref, c.bitdepth);
+        }
+        if (err) {
+            fprintf(stderr, "problem with reference file: %s\n", c.path_ref);
+            return -1;
+        }
+
+        if (c.use_yuv) {
+            err = raw_input_open(&vid_dist, file_dist,
+                                 c.width, c.height, c.pix_fmt, c.bitdepth);
+        } else {
+            err = video_input_open(&vid_dist, file_dist, c.bitdepth);
+        }
+        if (err) {
+            fprintf(stderr, "problem with distorted file: %s\n", c.path_dist);
+            return -1;
+        }
     }
 
     VmafConfiguration cfg = {
