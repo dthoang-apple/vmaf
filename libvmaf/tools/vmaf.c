@@ -352,14 +352,6 @@ int main(int argc, char *argv[])
         }
     }
 
-    VmafPicture pic_ref, pic_dist;
-
-    for (unsigned i = 0; i < c.frame_skip_ref; i++)
-        fetch_picture(&vid_ref, &pic_ref, common_bitdepth);
-
-    for (unsigned i = 0; i < c.frame_skip_dist; i++)
-        fetch_picture(&vid_dist, &pic_dist, common_bitdepth);
-
     float fps = 0.;
     const time_t t0 = clock();
     unsigned picture_index;
